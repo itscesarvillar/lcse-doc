@@ -2,12 +2,12 @@
 
 \section{Loopback digital}
 	Tras la prueba del loopback analógico y del desarrollo de la interfaz I$^2$S, la  aplicación más sencilla que probaba esto último es un loopback digital. Gracias a cómo se ha desarrollado el codec, el desarrollador de aplicaciones no tiene que preocuparse cuando tiene que coger y soltar los datos de audio si el procesamiento de audio es sólo combinacional como es el caso.
-	Una mínima modificación de la aplicación permite hacer un cruze de canales que ayudo a cerciorarnos de que el audio era procesado exclusivamente por la FPGA. Posteriormente esta aplicación será modificada dándonle el nombre de \emph{ATTENUATOR$\_$6dB} para convivir con \emph{REVERB$\_$COMB}, se explica debajo en \ref{directo:attenuator-loopback}
+	Una mínima modificación de la aplicación permite hacer un cruze de canales que ayudó a cerciorarnos de que el audio era procesado exclusivamente por la FPGA. Posteriormente esta aplicación será modificada dándonle el nombre de \emph{ATTENUATOR$\_$6dB} para convivir con \emph{REVERB$\_$COMB}, se explica debajo en \ref{directo:attenuator-loopback}
 
 \section{Reverb COMB}
 \begin{figure}[h]
 \begin{center}
-	\includegraphics[width=0.7\textwidth]{./reverb_simple_diagram}
+	\includegraphics[width=0.7\textwidth]{./reverb_simple_diagram-eps-converted-to}
 \caption{Diagrama de una reverb basada en los rebotes del sonido entre dos paredes}
 \end{center}
 \end{figure}
@@ -18,7 +18,7 @@
 
 \begin{figure}[h]
 \begin{center}
-	\includegraphics[width=0.7\textwidth]{./reverb_implemented_diagram}
+	\includegraphics[width=0.7\textwidth]{./reverb_implemented_diagram-eps-converted-to}
 \caption{Anchos de palabra asignados a la aplicación}
 \label{default}
 \end{center}
@@ -80,6 +80,11 @@
 		
 		\subsubsection{Multiplicador}
 		Una mejora significativa es la introducción de un multiplicador en el lazo. Las entradas de este multiplicador son \emph{STD$\_$LOGIC$\_$VECTOR} usando la librería \emph{IEEE.STD$\_$LOGIC$\_$SIGNED.ALL} nos permite hacer multiplicaciones con signo. Nos quedan dos bits de signo al usar una entrada con un bit de parte entera y los restantes la parte decimal. El ISE infiere un multiplicador por una constante que tendrá menos área que uno con las dos entradas a priori desconocidas.
+
+
+
+\section{Afinador}
+	Podemos comentar algo de lo que habíamos pensado.
 
 	
 

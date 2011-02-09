@@ -7,7 +7,7 @@ Para realizar aplicaciones con audio en la placa XSB Board \cite{XSBBoard} de qu
 \section{Desarrollo seguido}
 
 	\subsection{Estudio de datasheets}
-		El primer paso del desarrolo fue el estudio de los datasheets, tanto del codec como el de la placa. Del documento de la placa se obtuvo principalmente qué pines de la FPGA se conectaban con el codec en qué manera, lo cual puede verse resumido en la siguiente tabla:
+		El primer paso del desarrollo fue el estudio de los datasheets, tanto del codec como el de la placa. Del documento de la placa se obtuvo principalmente qué pines de la FPGA se conectaban con el codec en qué manera, lo cual puede verse resumido en la siguiente tabla:
 
 
 \begin{figure}[H]
@@ -83,8 +83,8 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar. En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta. Una imagen que ilustra lo que sucede en la placa es la siguiente:
 \begin{figure}[h]
 \begin{center}
-	\includegraphics[width=0.5\textwidth]{./swapping_channels}
-\caption{Cruze tanto a la entrada como a la salida de los conectores jack}
+	\includegraphics[width=0.5\textwidth]{./swapping_channels-eps-converted-to}
+\caption{Cruce tanto a la entrada como a la salida de los conectores jack}
 \end{center}
 \end{figure}
 
