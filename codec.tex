@@ -80,7 +80,13 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 
 
 		\paragraph{Conexion cruzando canales}
-			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar. En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta.
+			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar. En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta. Una imagen que ilustra lo que sucede en la placa es la siguiente:
+\begin{figure}[h]
+\begin{center}
+	\includegraphics[width=0.5\textwidth]{./swapping_channels}
+\caption{Cruze tanto a la entrada como a la salida de los conectores jack}
+\end{center}
+\end{figure}
 
 		\paragraph{Utilización de un sólo canal de entrada y procesado diferente en cada canal de salida}
 	
