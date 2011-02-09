@@ -80,7 +80,9 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 
 
 		\paragraph{Conexion cruzando canales}
-			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar. En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta. Una imagen que ilustra lo que sucede en la placa es la siguiente:
+			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar.\\
+
+En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta. Una imagen que ilustra lo que sucede en la placa es la siguiente:
 \begin{figure}[h]
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{./swapping_channels-eps-converted-to}
@@ -90,7 +92,27 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 
 		\paragraph{Utilización de un sólo canal de entrada y procesado diferente en cada canal de salida}
 	
-			Más tarde, ya trabajando con una aplicación que hacía uso del codec de audio...
+			Más tarde, ya trabajando con una aplicación que hacía uso del codec de audio realizabamos el siguiente montaje: tomabamos el canal izquierdo del ADC y lo envíabamos sin procesar al canal izquierdo del DAC y procesado al canal derecho del DAC.\\
+
+La sorpresa era que el canal del que se tomaba el audio era el derecho en lugar del izquierdo y que se oía procesado el izquierdo en vez de el derecho.\\
+
+Entonces pensamos que se cruzaban los canales de audio tanto en la etapa analógica-digital como en la digital-analógica. Esto está en concordancia con las anteriores pruebas hechas ya que en el caso de la conexión sin cruzar, puesto que se cruza en ambas etapas, finalmente cada canal está en el lado correspondiente.\\
+
+Haciendo un cruce de canales al nivel de aplicación, tienen que escucharse cruzados porque se producirá un numero de cruces impar.\\
+
+Por tanto, las pruebas que habíamos hecho antes y con las cuales habíamos pensado que el tratamiento de los canales era el correcto, no eran suficientes.\\
+
+A partir de este momento dedicamos muchísimo tiempo a revisar nuestro código, repetir las simulaciones por si habíamos descuidado algún aspecto, volver a leer los datasheets, etc.\\
+
+En el datasheet del codec vimos que la asignación de canales en relación a la señal LRCK (LEFT-RIGHT CLOCK) cuando se usa la interfaz I$^2$S es la contraria al resto de interfaces. En I$^2$S es LEFT=0, RIGHT=1 y en las demás, LEFT=1, RIGHT=0. Por tanto pensamos que la parte de control que envía la configuración al codec, podía estar mal, no estar seleccionándose I$^2$S y por ello estar los canales cruzados.\\
+
+Repetimos las pruebas del módulo de control probando diferentes configuraciones y parecía que el no problema no se encontraba allí.\\
+
+Comprobamos los esquemáticos de la placa para ver si el canal izquierdo estaba conectado a la punta de los jacks y  el derecho al contacto central. En los esquemáticos de nuevo era correcto, por lo que seguíamos sin saber cuál era la causa de los cruces de canales.\\
+
+Finalmente, tomamos un multímetro y realizamos medidas sobre la placa para ver si la realidad se correspondía con los esquemáticos y no era así. En la placa, en realidad, el canal derecho estaba conectado a la punta del jack y el izquierdo al contacto central. Como esto ocurría tanto en el jack de entrada como en el de salida, se producía el doble cruce que antes describíamos.\\
+
+Para solucionarlo, ante la evidente imposibilidad de modificar la placa, hicimos que dentro del módulo principal del driver del codec (I2S.vhd) se cruzasen los canales para tener todo como debería ser.
 			
 		
 	
