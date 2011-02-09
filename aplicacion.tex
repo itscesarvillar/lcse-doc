@@ -1,12 +1,46 @@
 \part{APLICACIÓN}
 
 \section{Loopback digital}
-
+	Tras la prueba del loopback analógico y del desarrollo de la interfaz I$^2$S, la  aplicación más sencilla que probaba esto último es un loopback digital. Gracias a cómo se ha desarrollado el codec, el desarrollador de aplicaciones no tiene que preocuparse cuando tiene que coger y soltar los datos de audio si el procesamiento de audio es sólo combinacional como es el caso.
+	Una mínima modificación de la aplicación permite hacer un cruze de canales que ayudo a cerciorarnos de que el audio era procesado exclusivamente por la FPGA. 
 
 \section{Reverb COMB}
+\begin{figure}[h]
+\begin{center}
+	\includegraphics[width=0.7\textwidth]{./reverb_simple_diagram}
+\caption{Diagrama de una reverb basada en los rebotes del sonido entre dos paredes}
+\end{center}
+\end{figure}
+	Este flujograma tiene una respuesta en frecuencia parecida a la forma de un peine, es decir, deja pasar con facilidad unas componentes de frecuencia (púas del peine) y otras no tanto (valles del peine). El número de picos y la distancia entre ellos (equiespaciados entre entre 0 y $\pi$) depende del tiempo entre rebotes, lo que en el mundo digital es el número de muestras de retardo. Vemos que el esquema contiene los tres bloques básicos de cualquier DSP: un sumador, un multiplicador y una memoria.
 	
+\paragraph{} Se pensó en otros flujogramas más complejos como inlcuir un filtro paso bajo en la red de realimentación que ayuda a suavizar el sonido metálico, pero los pocos recursos de la FPGA y que tal sonido una vez llevado a la FPGA no era tan evidente como mostraba Matlab lo hicieron desaconsajable. (¿ponemos las figuras?).
+\paragraph{Algoritmos de punto fijo} Para estudiar el algoritmo y poder dimensionar los parámetros de retardo y atenuación utilizamos en Matlab. El problema radica en que Matlab usa algoritmos en coma flotante que en un FPGA no están soportados de forma nativa. Así que tuvimos que rediseñar nuestro problema a uno de punto fijo definiendo el ancho de palabra en cada segmento del flujograma tal y como se puede apreciar en esta imagen:
+
+\begin{figure}[h]
+\begin{center}
+	\includegraphics[width=0.7\textwidth]{./reverb_implemented_diagram}
+\caption{Anchos de palabra asignados a la aplicación}
+\label{default}
+\end{center}
+\end{figure}
+
+	En principio se trabajo con la máxima resolución posible (20 bits), pero con ánimo de reservar los máximos recursos a la memoria se decidió por recortar el número de bits de 20 a, en un principio, 12. Pero al ver los informes del ISE, vimos que como usa las LUTs para almacenar y éstas son unas ROM de 4 entradas (16 bits) la diferencia en recursos entre 12 y 16 debía ser nula.
+	
+\paragraph{Restricciones adoptadas} 
+	Por la falta de conocimientos en Matlab acerca del punto fijo y el desconocimiento de la estadística de las señales que permite saber si ciertos bits de la palabra se usan y con que frecuencia, utilizamos unas restricciones poco maduradas debido a la escasez de tiempo y al poco manejo práctico que tenemos de la \emph{coma} en el mundo digital, son las siguientes:
+\begin{itemize}
+\item \textbf{Sumador}: la suma de dos palabras de X bits, podría resultar una palabra de X+1 bits, cómo la memoria tiene Y filas de X bits, tenemos que decidir si truncamos la palabra o sí la redondeamos a su valor más proximo, en el caso que pensemos en el lugar donde está la \emph{coma} . 
+	Se decidió por truncar cogiendo los bits más significativos, como resultado obtenemos una división por un factor 2 (multiplicador x01)  
+\item \textbf{Memoria}: el elemento más delicado de la aplicación, define los bits que se entregan al codec para su reproducción.
+\item \textbf{Multiplicador}: Implementado como un multiplicador por una constante, tiene dos entradas de X bits y la salida es de 2X bits de los cuales sólo X se pueden aprovechar.  La constante multiplicadora tiene que ser menor que 2 para que no haya inestabilidades, ya que la atenuación total será el factor de multiplicación de este multiplicador entre 2, debido al efecto del sumador. 
+	La señal entregada por el codec asumimos que es sin decimales, al multiplicarla por una constante con X-1 decimales, nos queda al final una palabra de 2X bits de los cuales X-1 son decimales, X son la parte entera (el MSB es signo) y nos queda otro bit (el MSB de la palabra de 2X bits) que extiende este signo.
+	Cogemos la parte entera, sin tener en cuenta la parte decimal que nos serviría para aproximar.
+\end{itemize}
+ 
+
 
 	\subsection{Retardo}
+	
 		\subsubsection{Registros en cadena}
 		\subsubsection{RAM}
 
