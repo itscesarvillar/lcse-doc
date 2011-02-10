@@ -13,7 +13,7 @@
 \end{figure}
 	Este flujograma tiene una respuesta en frecuencia parecida a la forma de un peine, es decir, deja pasar con facilidad unas componentes de frecuencia (púas del peine) y otras no tanto (valles del peine). El número de picos y la distancia entre ellos (equiespaciados entre entre 0 y $\pi$) depende del tiempo entre rebotes, lo que en el mundo digital es el número de muestras de retardo. Vemos que el esquema contiene los tres bloques básicos de cualquier DSP: un sumador, un multiplicador y una memoria.
 	
-\paragraph{} Se pensó en otros flujogramas más complejos como inlcuir un filtro paso bajo en la red de realimentación que ayuda a suavizar el sonido metálico, pero los pocos recursos de la FPGA y que tal sonido una vez llevado a la FPGA no era tan evidente como mostraba Matlab lo hicieron desaconsajable. (¿ponemos las figuras?).
+\paragraph{} Se pensó en otros flujogramas más complejos como inlcuir un filtro paso bajo en la red de realimentación que ayuda a suavizar el sonido metálico, pero los pocos recursos de la FPGA y que tal sonido una vez llevado a la FPGA no era tan evidente como mostraba Matlab lo hicieron desaconsajable. \textcolor{rosa}{(¿ponemos las figuras?)}.
 \paragraph{Algoritmos de punto fijo} Para estudiar el algoritmo y poder dimensionar los parámetros de retardo y atenuación utilizamos en Matlab. El problema radica en que Matlab usa algoritmos en coma flotante que en un FPGA no están soportados de forma nativa. Así que tuvimos que rediseñar nuestro problema a uno de punto fijo definiendo el ancho de palabra en cada segmento del flujograma tal y como se puede apreciar en esta imagen:
 
 \begin{figure}[h]
@@ -32,7 +32,7 @@
 \item \textbf{Sumador}: la suma de dos palabras de X bits, podría resultar una palabra de X+1 bits, cómo la memoria tiene Y filas de X bits, tenemos que decidir si truncamos la palabra o sí la redondeamos a su valor más proximo, en el caso que pensemos en el lugar donde está la \emph{coma} . 
 	Se decidió por truncar cogiendo los bits más significativos, como resultado obtenemos una división por un factor 2 (multiplicador x01)  
 \item \textbf{Memoria}: el elemento más delicado de la aplicación, define los bits que se entregan al codec para su reproducción.
-\item \textbf{Multiplicador}: Implementado como un multiplicador por una constante, tiene dos entradas de X bits y la salida es de 2X bits de los cuales sólo X se pueden aprovechar.  La constante multiplicadora tiene que ser menor que 2 para que no haya inestabilidades, ya que la atenuación total será el factor de multiplicación de este multiplicador entre 2, debido al efecto del sumador. 
+\item \textbf{Multiplicador}: Representado en la figura como x02, en realidad es una implementación de un multiplicador por una constante, tiene dos entradas de X bits y la salida es de 2X bits de los cuales sólo X se pueden aprovechar.  La constante multiplicadora tiene que ser menor que 2 para que no haya inestabilidades, ya que la atenuación total será el factor de multiplicación de este multiplicador entre 2, debido al efecto del sumador. 
 	La señal entregada por el codec asumimos que es sin decimales, al multiplicarla por una constante con X-1 decimales, nos queda al final una palabra de 2X bits de los cuales X-1 son decimales, X son la parte entera (el MSB representa el signo) y nos queda otro bit (el MSB de la palabra de 2X bits) que extiende este signo.
 	Cogemos la parte entera, sin tener en cuenta la parte decimal que nos serviría para aproximar.
 \end{itemize}
@@ -74,6 +74,8 @@
 
 	\subsection{Atenuación en el lazo de realimentación} \label{directo:attenuator-loopback}
 		Al pasar el algoritmo a coma fija, se hace una división por un factor 2 al truncar y elegir los bits más significativos. Si la \emph{reverb} está en un canal y en el otro un loopback digital, este último canal sonaría el doble de fuerte en tensión (6dB en potencia) haciendo aún más imperceptible la reverberación, por lo tanto se aplica la misma atenuación en el loopback para normalizar el volumen en los dos canales.
+		
+		El motivo de colocar la atenuación en el lazo de realimentación es para no atenuar en exceso la salida ya que a ésta no se le suma la entrada. 
 
 		\subsubsection{Directo} 
 		Aunque el lazo de realimentación no tenga atenuación la \emph{reverb} no es inestable al tener una atenuación implícita después del sumador (truncamiento y elección de los bits). Esta fue la primera implementación y lo que motivo la modificación del \emph{loopback digital} a \emph{attenuator$\_$6dB}.
@@ -84,8 +86,24 @@
 
 
 \section{Afinador}
-	Podemos comentar algo de lo que habíamos pensado.
-
+	En un primer momento se quiso hacer un afinador para ello se pensó en varias alternativas. En primer lugar como las señales que tenemos que tratar solo llegan hasta los 1400 Hz, la frecuencia de muestreo y por tanto el volumen de cálculo que tendríamos que realizar sería mucho menor gracias a un diezmado que haríamos en la etapa de entrada.
+	
+	\subsection{FFT}
+	Una técnica de estimación espectral válida para todo el espectro el cualquier valor del tiempo es la transformada de Fourier, con esta técnica se puede estimar la frecuencia de todas las notas a la vez, o si se quiere más precisión entrar en una serie de ciclos de filtrado de la señal y obtención de la transformada a razón de ir aproximándose cada vez más a la frecuencia de la nota. 
+	
+	La transformada de Fourier se realizaría con un algoritmo FFT de orden igual a una potencia de 2 para aprovechar productos intermedios, pero es algo demasiado complejo para el tiempo que se da en la asignatura 
+	\subsection{Autocorrelación}
+	Otra forma de estimación espectral consiste en algoritmos que llevan la cuenta de pasos por cero entre ellos destaca por sus prestaciones la autocorrelación que consiste en multiplicar la señal por un versión desplazada, esto produce que la componente de mayor potencia de la señal prevalezca aún mas sobre las otras, siendo muy útil en las aplicaciones de ruido blanco porque lo elimina en gran totalidad. Es un algoritmo que sólo puede evaluar una componente de frecuencia en un intervalo de tiempo alrededor de to. \\
+	Para esto se hizo una simulación en Matlab con señales reales, el algoritmo funciona a la perfección. Lo que ocurre es que el sonido de ciertas cuerdas de guitarra tienen armónicos más potentes que el fundamental, o otras componentes más potentes que cualquier armónico de la señal que se quiere estimar la frecuencia. \\
+	El problema que se nos presenta no es tanto el volumen de cálculo pues con tan sólo el primer bit de la palabra de audio (la que nos dice el signo) se puede estimar perfectamente la frecuencia reduciendo multiplicadores de 20bits a puertas AND, sino cómo definir el intervalo to mínimo que permita hacer medidas precisas y que no afecta a la latencia y sobre todo cómo hacerlo de forma continuada puesto que a la aplicación siempre le estarían entrando datos.
+	
+	
+		\subsubsection{Enhanced Autocorrelation}
+		Una solución a esto es la autocorrelación \emph{potenciada} este algoritmo lo usa entre otros un programa de audio \emph{Audacity}, se buscó información acerca de cómo realizarlo pero .... \textcolor{rosa}{COMPLETAR!}
+	
+	\subsection{Banco de filtros: mezcla de las dos anteriores}
+	Debido al problema de los armónicos y las otras componentes se pensó en poner bancos de filtros paso banda en paralelo de tal forma que se realice una transformada de Fourier en unos sitios concretos del espectro, detectar cual es el primer máximo y una vez detectada la nota, aplicar la autocorrelación a la señal filtrada por el banco de filtros para la afinación.
+	Se implemento un filtro paso bajo con un \emph{core generator} de orden 6 y resulta que ocupaba un 14$\%$ de los recursos disponibles en la FPGA, descartando la aplicación por completo además de su complejidad para una aplicación en principio sencilla.
 	
 
 
