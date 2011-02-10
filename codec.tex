@@ -48,7 +48,17 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 
 	\subsection{Relojes}
 
-		Modulo IS2\_CLOCKS.vhd (revisar)
+		El codec necesita cuatro relojes diferentes: MCLK, CCLK, LRCK y BCLK. Para generarlos, creamos un módulo que partiendo del reloj global (clk) de 50 MHz, genere los cuatro mediante divisiones. (IS2CLOCKS.vhd).\\
+
+		LRCK debe ser de frecuencia fs puesto que indica el canal con el que se está trabajando, MCLK de 256 o 384 (el codec detecta automáticame cuál tiene por lo que nosotros usamos 256 fs por sencillez), BLCK, el reloj de bit, debe ser >40 fs para soportar la máxima resolución de 20 bits (nosotros usamos 64 fs de nuevo por sencillez) y CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BCLK de 3.125 MHz.
+
+		Todo ello puede realizarse con un contador q y tomando como salidas de relojes lo siguiente:
+
+		\begin{verbatim}
+		MCLK <= q_i(1); -- CLK (50 MHz) / 4 = 12.5 Mhz = approx 256xfs
+		BCLK <= q_i(3); -- CLK (50 MHz) / 16 = 3.125 Mhz = approx 64xfs
+		LRCK <= q_i(9); -- CLK (50 MHz) / 1024 = fs
+		\end{verbatim} 
 	
 
 	\subsection{Loopback analógico}
