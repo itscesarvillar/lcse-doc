@@ -59,8 +59,8 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 		BCLK <= q_i(3); -- CLK (50 MHz) / 16 = 3.125 Mhz = approx 64xfs
 		LRCK <= q_i(9); -- CLK (50 MHz) / 1024 = fs
 		\end{verbatim} 
-	
-
+	Al principio pensamos que disponíamos de un reloj de 20 MHz, el margen de frecuencias generables era muy limitada  y además pensamos muestrear a 44100 Hz (frecuencia de muestreo de un CD), para ello implementamos divisores de doble módulo que conseguían una frecuencia muy parecida en media pero un \emph{jitter} impredecible. Desistimos de esta implementación al saber que el reloj del que disponíamos era de 100 MHz aunque usaríamos uno de 50 Mhz por recomendación del profesor.
+ 
 	\subsection{Loopback analógico}
 
 		Configurando el codec para que tomase como entrada la conexión LINE IN y activando el loopback analógico incluido en el codec, comprobamos que el modulo que envía la configuración al codec funcionaba correctamente, puesto que ninguna de las dos opciones estaba configurada por defecto y tras arrancar la FPGA y mandar esta configuración, el audio que entraba por LINE IN llegaba a la salida.
