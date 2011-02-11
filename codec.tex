@@ -85,7 +85,18 @@ CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BC
 
 	\subsection{Configuración o control del codec}
 
-		Módulo CONTROL.vhd \textcolor{rosa}{(ESCRIBIR)}.
+		El codec dispone de palabras de configuración que permiten cambiar bastantes parámetros. Para nuestro diseño consideramos necesario cambiar las siguientes palabras de configuración, dejando las demás en los valores por defecto, ya que éstos eran adecuados.\\
+
+		\paragraph{Input Select} 
+		Con esta palabra, se puede seleccionar cuál es la entrada de la que el codec hará la conversión analógico digital. Seleccionamos LINE ya es que es la entrada más adecuada y además está disponible en la placa en el jack azul.\\
+
+		\paragraph{Power Management} 
+		Con esta palabra se pueden encender y apagar los distintos módulos. Aquí es donde se puede activar el loopback analógico que se explicará a continuación. Cuando no lo utilizamos, no es necesario enviar esta palabra.\\
+
+		\paragraph{Mode Control} 
+		Con esta palabra podemos configurar la frecuencia de muestreo, activar \emph{de-emphasis} y elegir la interfaz de audio. Sólo necesitamos cambiar la interfaz de audio a I$^2$S, lo cual se detallará más adelante.\\
+
+		Para establecer esta configuración creamos un módulo (CONTROL.vhd) que simplemente envía al arranque las palabras necesarias.
 
 	
  
