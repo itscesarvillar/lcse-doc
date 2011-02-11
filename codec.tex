@@ -125,12 +125,7 @@ CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BC
 			En esta prueba conectamos el canal izquierdo del ADC con el canal derecho del DAC y el canal derecho del ADC con el canal izquiero del DAC. Los canales se reproducían cruzados, es decir, por el canal izquierdo se escuchaba el derecho y viceversa, como era de esperar.\\
 
 En este momento llegamos a la conclusión, que más tarde se verá errónea, de que los canales eran tratados de forma correcta. Una imagen que ilustra lo que sucede en la placa es la siguiente:
-\begin{figure}[h]
-\begin{center}
-	\includegraphics[width=0.5\textwidth]{./swapping_channels-eps-converted-to}
-\caption{Cruce tanto a la entrada como a la salida de los conectores jack}
-\end{center}
-\end{figure}
+
 
 		\paragraph{Utilización de un sólo canal de entrada y procesado diferente en cada canal de salida}
 	
@@ -153,6 +148,13 @@ Repetimos las pruebas del módulo de control probando diferentes configuraciones
 Comprobamos los esquemáticos de la placa para ver si el canal izquierdo estaba conectado a la punta de los jacks y  el derecho al contacto central. En los esquemáticos de nuevo era correcto, por lo que seguíamos sin saber cuál era la causa de los cruces de canales.\\
 
 Finalmente, tomamos un multímetro y realizamos medidas sobre la placa para ver si la realidad se correspondía con los esquemáticos y no era así. En la placa, en realidad, el canal derecho estaba conectado a la punta del jack y el izquierdo al contacto central. Como esto ocurría tanto en el jack de entrada como en el de salida, se producía el doble cruce que antes describíamos.\\
+
+\begin{figure}[H]
+\begin{center}
+	\includegraphics[width=0.5\textwidth]{./swapping_channels-eps-converted-to}
+\caption{Cruce en los conectores jack tanto de entrada como de salida}
+\end{center}
+\end{figure}
 
 Para solucionarlo, ante la evidente imposibilidad de modificar la placa, hicimos que dentro del módulo principal del driver del codec (I2S.vhd) se cruzasen los canales para tener todo como debería ser.
 		
