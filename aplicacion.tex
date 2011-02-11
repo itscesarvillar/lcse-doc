@@ -1,8 +1,10 @@
 \part{APLICACIÓN}
 
 \section{Loopback digital}
-	Tras la prueba del loopback analógico y del desarrollo de la interfaz I$^2$S, la  aplicación más sencilla que probaba esto último es un loopback digital. Gracias a cómo se ha desarrollado el codec, el desarrollador de aplicaciones no tiene que preocuparse cuando tiene que coger y soltar los datos de audio si el procesamiento de audio es sólo combinacional como es el caso.
-	Una mínima modificación de la aplicación permite hacer un cruze de canales que ayudó a cerciorarnos de que el audio era procesado exclusivamente por la FPGA. Posteriormente esta aplicación será modificada dándonle el nombre de \emph{ATTENUATOR$\_$6dB} para convivir con \emph{REVERB$\_$COMB}, se explica debajo en \ref{directo:attenuator-loopback}
+	Tras la prueba del loopback analógico y del desarrollo de la interfaz I$^2$S, la  aplicación más sencilla que probaba esto último es un loopback digital.\\
+
+	Gracias a cómo se ha desarrollado el codec, el desarrollador de aplicaciones no tiene que preocuparse cuando tiene que coger y soltar los datos de audio si el procesamiento de audio es sólo combinacional como es el caso.
+	Una mínima modificación de la aplicación permite hacer un cruce de canales que ayudó a cerciorarnos de que el audio era procesado exclusivamente por la FPGA. Posteriormente esta aplicación será modificada dándonle el nombre de \emph{ATTENUATOR$\_$6dB} para convivir con \emph{REVERB$\_$COMB}, se explica debajo en \ref{directo:attenuator-loopback}
 
 \section{Reverb COMB}
 \begin{figure}[h]
@@ -73,7 +75,7 @@
 
 
 	\subsection{Atenuación en el lazo de realimentación} \label{directo:attenuator-loopback}
-		Al pasar el algoritmo a coma fija, se hace una división por un factor 2 al truncar y elegir los bits más significativos. Si la \emph{reverb} está en un canal y en el otro un loopback digital, este último canal sonaría el doble de fuerte en tensión (6dB en potencia) haciendo aún más imperceptible la reverberación, por lo tanto se aplica la misma atenuación en el loopback para normalizar el volumen en los dos canales.
+		Al pasar el algoritmo a coma fija, se hace una división por un factor 2 al truncar y elegir los bits más significativos. Si la \emph{reverb} está en un canal y en el otro un loopback digital, este último canal sonaría el doble de fuerte en tensión (6dB en potencia) haciendo aún más imperceptible la reverberación, por lo tanto se aplica la misma atenuación en el loopback para normalizar el volumen en los dos canales.\\
 		
 		El motivo de colocar la atenuación en el lazo de realimentación es para no atenuar en exceso la salida ya que a ésta no se le suma la entrada. 
 
@@ -89,13 +91,25 @@
 	En un primer momento se quiso hacer un afinador como aplicación. Para ello se pensó en varias alternativas. En primer lugar como las señales que tenemos que tratar solo llegan hasta los 1400 Hz, la frecuencia de muestreo y por tanto el volumen de cálculo que tendríamos que realizar sería mucho menor gracias a un diezmado que haríamos en la etapa de entrada.
 	
 	\subsection{FFT}
-	Una técnica de estimación espectral válida para todo el espectro el cualquier valor del tiempo es la transformada de Fourier, con esta técnica se puede estimar la frecuencia de todas las notas a la vez, o si se quiere más precisión entrar en una serie de ciclos de filtrado de la señal y obtención de la transformada a razón de ir aproximándose cada vez más a la frecuencia de la nota. 
+	Una técnica de estimación espectral válida para todo el espectro el cualquier valor del tiempo es la transformada de Fourier, con esta técnica se puede estimar la frecuencia de todas las notas a la vez, o si se quiere más precisión entrar en una serie de ciclos de filtrado de la señal y obtención de la transformada a razón de ir aproximándose cada vez más a la frecuencia de la nota. \\
 	
 	La transformada de Fourier se realizaría con un algoritmo FFT de orden igual a una potencia de 2 para aprovechar productos intermedios, pero es algo demasiado complejo para el tiempo que se da en la asignatura 
 	\subsection{Autocorrelación}
-	Otra forma de estimación espectral consiste en algoritmos que llevan la cuenta de pasos por cero entre ellos destaca por sus prestaciones la autocorrelación que consiste en multiplicar la señal por un versión desplazada, esto produce que la componente de mayor potencia de la señal prevalezca aún mas sobre las otras, siendo muy útil en las aplicaciones de ruido blanco porque lo elimina en gran totalidad. Es un algoritmo que sólo puede evaluar una componente de frecuencia en un intervalo de tiempo alrededor de to. \\
-	Para esto se hizo una simulación en Matlab con señales reales, el algoritmo funciona a la perfección. Lo que ocurre es que el sonido de ciertas cuerdas de guitarra tienen armónicos más potentes que el fundamental, o otras componentes más potentes que cualquier armónico de la señal que se quiere estimar la frecuencia. \\
-	El problema que se nos presenta no es tanto el volumen de cálculo pues con tan sólo el primer bit de la palabra de audio (la que nos dice el signo) se puede estimar perfectamente la frecuencia reduciendo multiplicadores de 20bits a puertas AND, sino cómo definir el intervalo to mínimo que permita hacer medidas precisas y que no afecta a la latencia y sobre todo cómo hacerlo de forma continuada puesto que a la aplicación siempre le estarían entrando datos.
+	Otra forma de estimación espectral consiste en algoritmos que llevan la cuenta de pasos por cero entre ellos destaca por sus prestaciones la autocorrelación que consiste en multiplicar la señal por un versión desplazada, esto produce que la componente de mayor potencia de la señal prevalezca aún mas sobre las otras, siendo muy útil en las aplicaciones de ruido blanco porque lo elimina en gran medida. Es un algoritmo que sólo puede evaluar una componente de frecuencia en un intervalo de tiempo alrededor de to. \\
+
+	Para esto se hizo una simulación en Matlab con señales reales, el algoritmo funciona a la perfección. Lo que ocurre es que el sonido de ciertas cuerdas de guitarra tienen armónicos más potentes que el fundamental, u otras componentes más potentes que cualquier armónico de la señal que se quiere estimar la frecuencia y en esos casos, la frecuencia estmiada es la del armónico de mayor potencia en lugar la la frecuencia fundamental. \\
+
+	El problema que se nos presenta no es tanto el volumen de cálculo pues con tan sólo el primer bit de la palabra de audio (la que nos dice el signo) se puede estimar perfectamente la frecuencia reduciendo multiplicadores de 20bits a puertas AND, sino cómo definir el intervalo to mínimo que permita hacer medidas precisas y que no afecta a la latencia y sobre todo cómo hacerlo de forma continuada puesto que a la aplicación siempre le estarían entrando datos.\\
+
+	A continuación mostramos los resultados de un algoritmo de prueba que hicimos en Matlab. La estimación de la frecuencia se realizaría contando pasos por cero, en principio a la correlación de la señal. Las señales son, por orden: nota sol de una guitarra en el dominio del tiempo, signo de la señal\footnote{Cuando hablamos de signo es equivalente a tomar el bit más significativo. Es la información que se tomaría para contar pasos por cero.}, FFT de la señal original\footnote{Mostrado únicamento con carácter informativo, para ver cómo va a afectar la autocorrelación al espectro}, autocorrelación de la señal, signo de la autocorrelación de la señal y FFT de la autocorrelación de la señal. Cabe destacar como la diferencia entre el pico originalmente más potente con respecto a los demás se incremente una vez realizada la autocorrelación.
+
+	\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=0.7\textwidth]{./G}
+	\caption{Diagrama de bloques de \emph{enhanced autocorrelation}}
+	\label{default}
+	\end{center}
+	\end{figure}
 	
 	
 		\subsubsection{Enhanced Autocorrelation}

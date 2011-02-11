@@ -6,6 +6,8 @@
 	\subsection{Módulo Relojes}
 		El codec necesita una serie de relojes que se generan a partir de uno de referencia (a partir de ahora clk) indicados en \cite{AK4565} MCLK, LRCK (el que dictará la frecuencia de muestreo), BCLK y CCLK, estos últimos pueden ser el mismo reloj, pero igual para tu aplicación tiene que ser distinto.
 		Nosotros los generemos en fase para que no haya \emph{jitter} tan molesto en audio. Para ello lo realizamos con un sólo contador extrayéndo los bits necesarios tal y como se hace en \emph{I2SCLOCKS.vhd} \\
+
+	Si la frecuencia con la que trabajases como reloj principal no es 50 MHz o si quisieras cambiar la frecuencia de algún reloj del codec por algún motivo concreto, este sería el módulo que habría que modificar.
 		
 	\paragraph{Temporización}
 Una vez generados los relojes tendrás que trabajar sólo clk para que en los cambios de dominio entre datos gobernados por un reloj y otros datos gobernados por otro reloj no haya problemas, es decir si te interesa hacer una cosa cuando el reloj CCLK tenga un flanco negativo, toda tu aplicación tendrá que estar gobernada por clk y muestrear CCLK hasta que se produzca el cambio deseado y entonces actuar, con el reloj clk.
@@ -26,7 +28,7 @@ STD_LOGIC_VECTOR (15 downto 0) := "0011110100010111";
 						          --"00111101_00010_111" -- Selects I2S
 \end{verbatim}
 	
-	Con estas dos palabras ya tendrías operativo el codec, pero hay otras configuraciones como \emph{fade-in} o \emph{fade-out} y otras muchas. Para mandar todas lo mejor es realizar una maquina de estados similar a la que se implementa en \emph{CONTROL.vhd}
+	Con estas dos palabras ya tendrías operativo el codec, pero hay otras configuraciones como \emph{fade-in} o \emph{fade-out} y otras muchas. Para mandar todas lo mejor es realizar una maquina de estados similar a la que se implementa en \emph{CONTROL.vhd} o modificar esta sustituyendo las palabras de configuración o añadiendo alguna más según se necesite.
 
 	
 	\subsection{Módulo I$^2$S}
@@ -57,7 +59,7 @@ end if;
 		La más sencilla aplicación que puedes realizar debe tener estas entradas y salidas.\\
 		\begin{figure}[H]
 \begin{center}
-	\includegraphics[width=0.7\textwidth]{./entity_fpga}
+	\includegraphics[width=0.4\textwidth]{./entity_fpga}
 \caption{Minimas entradas y salidas de tu fpga}
 \end{center}
 \end{figure}
