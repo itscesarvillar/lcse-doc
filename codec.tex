@@ -43,7 +43,15 @@ Para realizar aplicaciones con audio en la placa XSB Board \cite{XSBBoard} de qu
 \end{figure}
 
 
-\textcolor{rosa}{Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopback, selección de interfaz de audio.}
+	Del datasheet del codec vimos cuál era su funcionamiento de  manera general y más concretamente las palabras de configuración a cambiar y especificaciones técnicas como:
+
+	\begin{itemize}
+		\item Máxima resolución: 20 bits
+		\item Máxima frecuencia de muestreo: 50 KHz
+		
+	\end{itemize}
+
+	En las siguientes secciones se irá explicando con más detenimiento y se verán los detalles relevantes del codec, por lo que no repetiremos la información aquí.
 
 
 	\subsection{Reloj principal}
@@ -54,18 +62,25 @@ Para realizar aplicaciones con audio en la placa XSB Board \cite{XSBBoard} de qu
 	\subsection{Relojes para el codec}
 
 		El codec necesita cuatro relojes diferentes: MCLK, CCLK, LRCK y BCLK. Para generarlos, creamos un módulo que partiendo del reloj global (clk) de 50 MHz, genere los cuatro mediante divisiones. (IS2CLOCKS.vhd).\\
+		
 
-		LRCK debe ser de frecuencia fs puesto que indica el canal con el que se está trabajando, MCLK de 256 o 384 (el codec detecta automáticame cuál tiene por lo que nosotros usamos 256 fs por sencillez), BLCK, el reloj de bit, debe ser $>$40 fs para soportar la máxima resolución de 20 bits (nosotros usamos 64 fs de nuevo por sencillez) y CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BCLK de 3.125 MHz.
+		LRCK debe ser de frecuencia fs puesto que indica el canal con el que se está trabajando, MCLK de 256 o 384 (el codec detecta automáticame cuál tiene por lo que nosotros usamos 256 fs por sencillez) y BLCK, el reloj de bit, debe ser $>$40 fs para soportar la máxima resolución de 20 bits (nosotros usamos 64 fs de nuevo por sencillez).\\
 
-		Todo ello puede realizarse con un contador con índice q y tomando como salidas de relojes lo siguiente:
+		Dado el límite de muestreo del codec de 50 KHz, intentaremos que fs se aproxime todo lo que podamos a él sin pasarse. Todo ello puede realizarse con un contador con índice q y tomando como salidas de relojes lo siguiente:
 
 		\begin{verbatim}
-		MCLK <= q_i(1); -- CLK (50 MHz) / 4 = 12.5 Mhz = approx 256xfs
-		BCLK <= q_i(3); -- CLK (50 MHz) / 16 = 3.125 Mhz = approx 64xfs
-		LRCK <= q_i(9); -- CLK (50 MHz) / 1024 = fs
+		MCLK <= q_i(1); -- CLK (50 MHz) / 4 = 12.5 Mhz = 256xfs
+		BCLK <= q_i(3); -- CLK (50 MHz) / 16 = 3.125 Mhz = 64xfs
+		LRCK <= q_i(9); -- CLK (50 MHz) / 1024 = 48.828 KHz = fs
 		\end{verbatim} 
 
+CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BCLK de 3.125 MHz.\\
+
 		Siempre que es necesario utilizar uno de los relojes del codec dentro de la FPGA, en realidad no se usa directamente, si no que se utilizan eventos del reloj principal y se buscan cambios en los otros relojes para que todo el diseño sea síncrono y dependa de un único reloj.
+
+
+
+
 
 
 	\subsection{Configuración o control del codec}
