@@ -13,7 +13,7 @@
 \end{figure}
 	Este flujograma tiene una respuesta en frecuencia parecida a la forma de un peine, es decir, deja pasar con facilidad unas componentes de frecuencia (púas del peine) y otras no tanto (valles del peine). El número de picos y la distancia entre ellos (equiespaciados entre entre 0 y $\pi$) depende del tiempo entre rebotes, lo que en el mundo digital es el número de muestras de retardo. Vemos que el esquema contiene los tres bloques básicos de cualquier DSP: un sumador, un multiplicador y una memoria.
 	
-\paragraph{} Se pensó en otros flujogramas más complejos como inlcuir un filtro paso bajo en la red de realimentación que ayuda a suavizar el sonido metálico, pero los pocos recursos de la FPGA y la complejidad que suponía lo hicieron desaconsajable. \textcolor{rosa}{(¿ponemos las figuras?)}.
+\paragraph{} Se pensó en otros flujogramas más complejos como inlcuir un filtro paso bajo en la red de realimentación que ayuda a suavizar el sonido metálico, pero los pocos recursos de la FPGA y la complejidad que suponía lo hicieron desaconsajable.
 \paragraph{Algoritmos de punto fijo} Para estudiar el algoritmo y poder dimensionar los parámetros de retardo y atenuación utilizamos en Matlab. El problema radica en que Matlab usa algoritmos en coma flotante que en un FPGA no están soportados de forma nativa. Así que tuvimos que rediseñar nuestro problema a uno de punto fijo definiendo el ancho de palabra en cada segmento del flujograma tal y como se puede apreciar en esta imagen:
 
 \begin{figure}[h]
@@ -99,7 +99,16 @@
 	
 	
 		\subsubsection{Enhanced Autocorrelation}
-		Una solución a esto es la autocorrelación \emph{potenciada} este algoritmo lo usa entre otros un programa de audio \emph{Audacity}, se buscó información acerca de cómo realizarlo pero .... \textcolor{rosa}{COMPLETAR!}
+		Una solución a esto es la autocorrelación \emph{potenciada} este algoritmo lo usa entre otros un programa de audio \emph{Audacity}, se buscó información acerca de cómo realizarlo encontrándose este esquema:
+\begin{figure}[h]
+\begin{center}
+	\includegraphics[width=0.7\textwidth]{./enhanced_autocorrelation}
+\caption{Diagrama de bloques de \emph{enhanced autocorrelation}}
+\label{default}
+\end{center}
+\end{figure}\\
+Pero al requerirse un algoritmo FFT y bloques que ignoramos cómo se realizan, se dieron pocas esperanzas a su realización.
+		
 	
 	\subsection{Banco de filtros: mezcla de las dos anteriores}
 	Debido al problema de los armónicos y las otras componentes se pensó en poner bancos de filtros paso banda en paralelo de tal forma que se realice una transformada de Fourier en unos sitios concretos del espectro, detectar cual es el primer máximo y una vez detectada la nota, aplicar la autocorrelación a la señal filtrada por el banco de filtros para la afinación.
