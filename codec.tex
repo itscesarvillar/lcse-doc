@@ -7,7 +7,7 @@ Para realizar aplicaciones con audio en la placa XSB Board \cite{XSBBoard} de qu
 \section{Desarrollo seguido}
 
 	\subsection{Estudio de datasheets}
-		El primer paso del desarrollo fue el estudio de los datasheets, tanto del codec como el de la placa. Del documento de la placa se obtuvo principalmente qué pines de la FPGA se conectaban con el codec en qué manera, lo cual puede verse resumido en la siguiente tabla:
+		El primer paso del desarrollo fue el estudio de los datasheets, tanto del codec como el de la placa. Del documento de la placa se obtuvo principalmente qué pines de la FPGA se conectaban con el codec y otros periféricos y en qué manera, lo cual puede verse resumido en la siguiente tabla:
 
 
 \begin{figure}[H]
@@ -43,23 +43,36 @@ Para realizar aplicaciones con audio en la placa XSB Board \cite{XSBBoard} de qu
 \end{figure}
 
 
-Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopback, selección de interfaz de audio.
+\textcolor{rosa}{Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopback, selección de interfaz de audio.}
 
 
-	\subsection{Relojes}
+	\subsection{Reloj principal}
+		La placa dispone de un reloj de 100 MHz, con un divisor programable en enteros. Pensamos que el diseño que fuésemos a realizar, no sería capaz de funcionar a dicha velocidad por lo que intentamos el siguiente paso inferior, es decir, 50 MHz mediante un divisor de 2. Si este no fuese suficientemente lento, seguiríamos reduciendo la velocidad, sin embargo, no fue necesario.\\
+		
+
+
+	\subsection{Relojes para el codec}
 
 		El codec necesita cuatro relojes diferentes: MCLK, CCLK, LRCK y BCLK. Para generarlos, creamos un módulo que partiendo del reloj global (clk) de 50 MHz, genere los cuatro mediante divisiones. (IS2CLOCKS.vhd).\\
 
-		LRCK debe ser de frecuencia fs puesto que indica el canal con el que se está trabajando, MCLK de 256 o 384 (el codec detecta automáticame cuál tiene por lo que nosotros usamos 256 fs por sencillez), BLCK, el reloj de bit, debe ser >40 fs para soportar la máxima resolución de 20 bits (nosotros usamos 64 fs de nuevo por sencillez) y CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BCLK de 3.125 MHz.
+		LRCK debe ser de frecuencia fs puesto que indica el canal con el que se está trabajando, MCLK de 256 o 384 (el codec detecta automáticame cuál tiene por lo que nosotros usamos 256 fs por sencillez), BLCK, el reloj de bit, debe ser $>$40 fs para soportar la máxima resolución de 20 bits (nosotros usamos 64 fs de nuevo por sencillez) y CCLK, el reloj de configuración, soporta hasta 5 MHz por lo que reutilizamos BCLK de 3.125 MHz.
 
-		Todo ello puede realizarse con un contador q y tomando como salidas de relojes lo siguiente:
+		Todo ello puede realizarse con un contador con índice q y tomando como salidas de relojes lo siguiente:
 
 		\begin{verbatim}
 		MCLK <= q_i(1); -- CLK (50 MHz) / 4 = 12.5 Mhz = approx 256xfs
 		BCLK <= q_i(3); -- CLK (50 MHz) / 16 = 3.125 Mhz = approx 64xfs
 		LRCK <= q_i(9); -- CLK (50 MHz) / 1024 = fs
 		\end{verbatim} 
-	Al principio pensamos que disponíamos de un reloj de 20 MHz, el margen de frecuencias generables era muy limitada  y además pensamos muestrear a 44100 Hz (frecuencia de muestreo de un CD), para ello implementamos divisores de doble módulo que conseguían una frecuencia muy parecida en media pero un \emph{jitter} impredecible. Desistimos de esta implementación al saber que el reloj del que disponíamos era de 100 MHz aunque usaríamos uno de 50 Mhz por recomendación del profesor.
+
+		Siempre que es necesario utilizar uno de los relojes del codec dentro de la FPGA, en realidad no se usa directamente, si no que se utilizan eventos del reloj principal y se buscan cambios en los otros relojes para que todo el diseño sea síncrono y dependa de un único reloj.
+
+
+	\subsection{Configuración o control del codec}
+
+		Módulo CONTROL.vhd \textcolor{rosa}{(ESCRIBIR)}.
+
+	
  
 	\subsection{Loopback analógico}
 
@@ -78,6 +91,10 @@ Del datasheet del codec... Palabras de configuración a cambiar: entradas, loopb
 
 	
 \section{Problemas encontrados}
+
+
+	\subsection{Generación de relojes}
+		Al principio pensamos que disponíamos de un reloj de 20 MHz, el margen de frecuencias generables era muy limitada  y además pensamos muestrear a 44100 Hz (frecuencia de muestreo de un CD), para ello implementamos divisores de doble módulo \cite{Fraccional divider in VHDL} que conseguían una frecuencia muy parecida en media pero con un \emph{jitter} impredecible. Abandonamos esta implementación al saber que el reloj del que disponíamos era de 100 MHz, y que podíamos aproximarnos con divisores enteros.
 
 	
 
@@ -123,8 +140,7 @@ Comprobamos los esquemáticos de la placa para ver si el canal izquierdo estaba 
 Finalmente, tomamos un multímetro y realizamos medidas sobre la placa para ver si la realidad se correspondía con los esquemáticos y no era así. En la placa, en realidad, el canal derecho estaba conectado a la punta del jack y el izquierdo al contacto central. Como esto ocurría tanto en el jack de entrada como en el de salida, se producía el doble cruce que antes describíamos.\\
 
 Para solucionarlo, ante la evidente imposibilidad de modificar la placa, hicimos que dentro del módulo principal del driver del codec (I2S.vhd) se cruzasen los canales para tener todo como debería ser.
-			
 		
 	
-\section{Documentación para la reutilización del codec}
+
 	
